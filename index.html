@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talking Points - Family Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
+        body { font-family: 'Quicksand', sans-serif; background-color: #1a1a2e; color: #fff; }
+        .font-title { font-family: 'Fredoka One', cursive; }
+        .floating-emoji {
+            position: absolute; bottom: 20px; font-size: 3rem;
+            animation: floatUp 2s ease-out forwards; opacity: 1;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-80vh) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 overflow-hidden relative">
+
+    <div id="reaction-layer" class="absolute inset-0 pointer-events-none z-50"></div>
+
+    <header class="text-center py-2">
+        <h1 class="text-3xl md:text-5xl font-title text-yellow-400 drop-shadow-md tracking-wider">TALKING POINTS</h1>
+        <p class="text-xs text-purple-300">Family Party Game</p>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center my-4">
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border-4 border-purple-600 w-full max-w-xl relative">
+            
+            <div id="screen-start" class="space-y-6 text-center">
+                <p class="text-lg text-gray-300">Give hilarious presentations on slides you've never seen before!</p>
+                <div class="flex flex-col gap-4">
+                    <button onclick="initHost()" class="bg-emerald-500 hover:bg-emerald-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg">
+                        👑 HOST A GAME
+                    </button>
+                    <div class="border-t border-gray-700 my-2"></div>
+                    <input type="text" id="player-name" placeholder="Your Name" class="w-full p-3 bg-gray-700 rounded-xl text-center font-bold text-white placeholder-gray-400 focus:outline-none focus:ring-2 Kakao font-xl">
+                    <input type="text" id="room-code-input" placeholder="4-Letter Room Code" class="w-full p-3 bg-gray-700 rounded-xl text-center font-title text-white uppercase placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-xl tracking-widest">
+                    <button onclick="initPlayer()" class="bg-indigo-500 hover:bg-indigo-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg">
+                        🎮 JOIN GAME
+                    </button>
+                </div>
+            </div>
+
+            <div id="screen-host-lobby" class="hidden space-y-6 text-center">
+                <div>
+                    <p class="text-sm text-gray-400 uppercase tracking-widest">Room Code</p>
+                    <h2 id="display-room-code" class="text-5xl font-title text-yellow-400 tracking-wider">----</h2>
+                </div>
+                <div class="bg-gray-900 p-4 rounded-xl min-h-[150px]">
+                    <p class="text-gray-400 border-b border-gray-700 pb-2 mb-2 font-bold">Players Connected</p>
+                    <ul id="host-player-list" class="grid grid-cols-2 gap-2 font-bold text-lg text-emerald-400"></ul>
+                </div>
+                <button onclick="startGame()" class="w-full bg-yellow-500 text-gray-900 font-title text-xl py-3 rounded-xl hover:bg-yellow-400 transition transform active:scale-95">
+                    🚀 START GAME
+                </button>
+            </div>
+
+            <div id="screen-player-lobby" class="hidden text-center space-y-6 py-8">
+                <div class="animate-pulse text-2xl font-title text-indigo-400">Connected to Host!</div>
+                <p class="text-gray-300 text-lg">Waiting for the Host to kick off the family madness...</p>
+                <div id="player-lobby-status" class="text-sm text-gray-500"></div>
+            </div>
+
+            <div id="screen-prompt" class="hidden space-y-4 text-center">
+                <h3 class="text-xl font-title text-purple-400">Create a Presentation Title!</h3>
+                <p class="text-sm text-gray-300">Write something weird or funny for another family member to present.</p>
+                <input type="text" id="submitted-title" placeholder="e.g., Why Bananas Rule the World" class="w-full p-3 bg-gray-700 rounded-xl text-white font-bold placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button onclick="submitPrompt()" id="btn-submit-prompt" class="w-full bg-purple-600 font-title py-3 rounded-xl hover:bg-purple-500 transition">
+                    Submit Title
+                </button>
+            </div>
+
+            <div id="screen-game" class="hidden space-y-4">
+                <div id="game-role-banner" class="text-center p-2 bg-purple-900/50 rounded-lg text-sm font-bold tracking-wide"></div>
+                
+                <div id="slide-area" class="bg-white text-gray-900 p-6 rounded-xl shadow-inner min-h-[300px] flex flex-col justify-between items-center text-center space-y-4">
+                    <h2 id="slide-title" class="text-2xl font-title text-indigo-900 line-clamp-2">Loading Presentation...</h2>
+                    <img id="slide-image" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='%23eee'/></svg>" class="max-h-40 object-contain rounded-lg hidden">
+                    <p id="slide-text" class="text-xl font-bold text-gray-700 italic"></p>
+                </div>
+
+                <div id="controller-area" class="space-y-2 mt-4">
+                    <div id="panel-assistant" class="hidden grid grid-cols-2 gap-2">
+                        <button onclick="sendAssistantAction('image')" class="bg-blue-600 p-3 font-title rounded-xl text-sm hover:bg-blue-500">🖼️ Change Image</button>
+                        <button onclick="sendAssistantAction('text')" class="bg-amber-600 p-3 font-title rounded-xl text-sm hover:bg-amber-500">✍️ Change Bullet</button>
+                    </div>
+                    <div id="panel-audience" class="hidden">
+                        <p class="text-center text-xs text-gray-400 mb-2 font-bold">React to the Speaker!</p>
+                        <div class="grid grid-cols-4 gap-2 text-2xl">
+                            <button onclick="sendReaction('😂')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">😂</button>
+                            <button onclick="sendReaction('👏')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">👏</button>
+                            <button onclick="sendReaction('😮')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">😮</button>
+                            <button onclick="sendReaction('💩')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">💩</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center text-xs text-gray-500 font-mono">
+        Status: <span id="network-status" class="text-yellow-500">Idle</span>
+    </footer>
+
+    <script>
+        let peer = null;
+        let connections = []; // Used by Host to store player connections
+        let myConn = null;     // Used by Player to store connection to Host
+        let isHost = false;
+        let myName = "";
+        let roomCode = "";
+        
+        // Game State Variables
+        let players = []; 
+        let prompts = [];
+        let currentPresenter = "";
+        let currentAssistant = "";
+        let currentTitle = "";
+
+        // Fun Slide Generation Content
+        const randomKeywords = ['cat', 'dog', 'alien', 'sandwich', 'explosion', 'money', 'crypto', 'grandma', 'banana', 'ghost', 'workout', 'math', 'ceo', 'toilet'];
+        const randomBulletPoints = [
+            "Data suggests this is completely unavoidable.",
+            "My grandmother told me this in a dream.",
+            "According to a questionable internet blog...",
+            "This cost me my entire life savings.",
+            "Notice how shiny it is? That's efficiency.",
+            "Phase 2 involves an alarming amount of cheese.",
+            "The government doesn't want you to know this.",
+            "We tried doing this with ferrets, it did not go well."
+        ];
+
+        function showScreen(id) {
+            ['screen-start', 'screen-host-lobby', 'screen-player-lobby', 'screen-prompt', 'screen-game'].forEach(s => {
+                document.getElementById(s).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function updateStatus(text, colorClass) {
+            const statusEl = document.getElementById('network-status');
+            statusEl.textContent = text;
+            statusEl.className = colorClass;
+        }
+
+        // --- HOST LOGIC ---
+        function initHost() {
+            isHost = true;
+            // Generate a random clean 4-letter room code
+            roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+            document.getElementById('display-room-code').textContent = roomCode;
+            updateStatus("Starting connection server...", "text-yellow-500");
+
+            // Connect to PeerJS cloud routing server
+            peer = new Peer('TKPT-' + roomCode);
+
+            peer.on('open', (id) => {
+                updateStatus("Room Open & Active", "text-emerald-400");
+                showScreen('screen-host-lobby');
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                alert("Room code setup failed. Try hosting again.");
+                updateStatus("Error standardizing room.", "text-red-500");
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    handleHostIncomingData(conn, data);
+                });
+            });
+        }
+
+        function handleHostIncomingData(conn, data) {
+            if (data.type === 'JOIN') {
+                // Register new family player
+                const newPlayer = { id: conn.peer, name: data.name };
+                players.push(newPlayer);
+                connections.push(conn);
+                
+                // Update host screen lobby
+                const list = document.getElementById('host-player-list');
+                const li = document.createElement('li');
+                li.textContent = data.name;
+                list.appendChild(li);
+
+                // Broadcast updated list to all players
+                broadcast({ type: 'LOBBY_UPDATE', players: players });
+            }
+            if (data.type === 'SUBMIT_PROMPT') {
+                prompts.push(data.text);
+                if (prompts.length >= players.length) {
+                    setupPresentationRound();
+                }
+            }
+            if (data.type === 'ASSISTANT_ACTION') {
+                generateNewSlideElement(data.actionType);
+            }
+            if (data.type === 'REACTION') {
+                broadcast({ type: 'SHOW_REACTION', emoji: data.emoji });
+            }
+        }
+
+        function startGame() {
+            if (players.length < 2) {
+                alert("You need at least 2 players to play! Call over some family members.");
+                return;
+            }
+            broadcast({ type: 'START_PROMPTS' });
+            showScreen('screen-prompt');
+        }
+
+        function setupPresentationRound() {
+            // Assign roles dynamically
+            let shuffled = [...players].sort(() => 0.5 - Math.random());
+            currentPresenter = shuffled[0];
+            currentAssistant = shuffled[1] || shuffled[0]; // Backup if small group
+            
+            // Pick a random funny prompt title
+            currentTitle = prompts[Math.floor(Math.random() * prompts.length)] || "Why We Must Ban Mondays";
+
+            broadcast({
+                type: 'START_ROUND',
+                presenter: currentPresenter,
+                assistant: currentAssistant,
+                title: currentTitle
+            });
+
+            // Put Host Screen directly into slide display mode
+            showScreen('screen-game');
+            document.getElementById('game-role-banner').textContent = "👑 HOST VIEW (Main Screen)";
+            document.getElementById('slide-title').textContent = currentTitle;
+            generateNewSlideElement('both');
+        }
+
+        function generateNewSlideElement(type) {
+            const randomKeyword = randomKeywords[Math.floor(Math.random() * randomKeywords.length)];
+            const randomText = randomBulletPoints[Math.floor(Math.random() * randomBulletPoints.length)];
+            const randomImgUrl = `https://loremflickr.com/400/300/${randomKeyword}?random=${Math.floor(Math.random()*1000)}`;
+
+            const payload = { type: 'UPDATE_SLIDE_ELEMENTS' };
+
+            if (type === 'image' || type === 'both') payload.img = randomImgUrl;
+            if (type === 'text' || type === 'both') payload.text = randomText;
+
+            broadcast(payload);
+        }
+
+        function broadcast(msg) {
+            connections.forEach(c => c.send(msg));
+            // Also invoke locally for Host device UI updates
+            handlePlayerIncomingData(msg);
+        }
+
+
+        // --- PLAYER LOGIC ---
+        function initPlayer() {
+            myName = document.getElementById('player-name').value.trim();
+            let code = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+            if (!myName || !code) {
+                alert("Please type both your Name and the 4-Letter Code!");
+                return;
+            }
+
+            updateStatus("Connecting to host...", "text-yellow-500");
+            peer = new Peer(); // Free random client ID
+
+            peer.on('open', () => {
+                myConn = peer.connect('TKPT-' + code);
+                
+                myConn.on('open', () => {
+                    updateStatus("Connected!", "text-emerald-400");
+                    myConn.send({ type: 'JOIN', name: myName });
+                    showScreen('screen-player-lobby');
+                });
+
+                myConn.on('data', (data) => {
+                    handlePlayerIncomingData(data);
+                });
+
+                myConn.on('close', () => {
+                    alert("Disconnected from Host.");
+                    location.reload();
+                });
+            });
+        }
+
+        function handlePlayerIncomingData(data) {
+            if (data.type === 'LOBBY_UPDATE') {
+                document.getElementById('player-lobby-status').innerHTML = `Players in lobby: <br> ${data.players.map(p => p.name).join(', ')}`;
+            }
+            if (data.type === 'START_PROMPTS') {
+                showScreen('screen-prompt');
+            }
+            if (data.type === 'START_ROUND') {
+                showScreen('screen-game');
+                setupPlayerUIForRole(data);
+            }
+            if (data.type === 'UPDATE_SLIDE_ELEMENTS') {
+                if (data.img) {
+                    const imgEl = document.getElementById('slide-image');
+                    imgEl.src = data.img;
+                    imgEl.classList.remove('hidden');
+                }
+                if (data.text) {
+                    document.getElementById('slide-text').textContent = data.text;
+                }
+            }
+            if (data.type === 'SHOW_REACTION') {
+                triggerFloatingEmoji(data.emoji);
+            }
+        }
+
+        function submitPrompt() {
+            const txt = document.getElementById('submitted-title').value.trim();
+            if (!txt) return;
+            
+            document.getElementById('btn-submit-prompt').disabled = true;
+            document.getElementById('btn-submit-prompt').textContent = "Waiting for others...";
+            
+            if (isHost) {
+                prompts.push(txt);
+                if (prompts.length >= players.length) setupPresentationRound();
+            } else {
+                myConn.send({ type: 'SUBMIT_PROMPT', text: txt });
+            }
+        }
+
+        function setupPlayerUIForRole(gameData) {
+            const roleBanner = document.getElementById('game-role-banner');
+            const panelAssistant = document.getElementById('panel-assistant');
+            const panelAudience = document.getElementById('panel-audience');
+            
+            // Hide all interaction panels to start
+            panelAssistant.classList.add('hidden');
+            panelAudience.classList.add('hidden');
+
+            document.getElementById('slide-title').textContent = gameData.title;
+
+            if (!isHost && peer.id === gameData.presenter.id) {
+                roleBanner.innerHTML = "🎤 YOU ARE THE SPEAKER! <br><span class='text-yellow-400 animate-pulse text-xs'>Look at the main host screen and start presenting!</span>";
+            } else if (!isHost && peer.id === gameData.assistant.id) {
+                roleBanner.innerHTML = "😈 YOU ARE THE ASSISTANT! <br><span class='text-orange-400 text-xs'>Sabotage them with the buttons below!</span>";
+                panelAssistant.classList.remove('hidden');
+            } else if (!isHost) {
+                roleBanner.innerHTML = "🍿 YOU ARE THE AUDIENCE";
+                panelAudience.classList.remove('hidden');
+            }
+        }
+
+        function sendAssistantAction(type) {
+            if (myConn) myConn.send({ type: 'ASSISTANT_ACTION', actionType: type });
+        }
+
+        function sendReaction(emoji) {
+            if (myConn) myConn.send({ type: 'REACTION', emoji: emoji });
+        }
+
+        function triggerFloatingEmoji(emoji) {
+            const layer = document.getElementById('reaction-layer');
+            const div = document.createElement('div');
+            div.className = "floating-emoji";
+            div.textContent = emoji;
+            // Random horizontal placement across screen
+            div.style.left = Math.random() * 80 + 10 + "%";
+            layer.appendChild(div);
+            
+            // Performance: remove elements after animation ends
+            setTimeout(() => { div.remove(); }, 2000);
+        }
+    </script>
+</body>
+</html>
