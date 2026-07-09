@@ -6,9 +6,10 @@
     <title>Talking Points - Family Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="custom.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
-        body { font-family: 'Quicksand', sans-serif; background-color: #1a1a2e; color: #fff; }
+        body { font-family: 'Quicksand', sans-serif; background-color: #121225; color: #fff; }
         .font-title { font-family: 'Fredoka One', cursive; }
         .floating-emoji {
             position: absolute; bottom: 20px; font-size: 3rem;
@@ -22,81 +23,98 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between p-4 overflow-hidden relative">
 
-    <div id="reaction-layer" class="absolute inset-0 pointer-events-none z-50"></div>
+    <div id="reaction-layer" class="absolute inset-0 pointer-events-none z-40"></div>
 
-    <header class="text-center py-2">
-        <h1 class="text-3xl md:text-5xl font-title text-yellow-400 drop-shadow-md tracking-wider">TALKING POINTS</h1>
-        <p class="text-xs text-purple-300">Family Party Game</p>
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 border-4 border-yellow-400 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl scale-95 transition-transform duration-200">
+            <h3 id="modal-title" class="text-2xl font-title text-yellow-400 uppercase tracking-wide">Attention</h3>
+            <p id="modal-message" class="text-gray-200 text-base font-medium"></p>
+            <button onclick="closeModal()" class="w-full bg-yellow-400 text-gray-950 font-title py-3 rounded-xl hover:bg-yellow-300 active:scale-95 transition tracking-wider">
+                GOT IT
+            </button>
+        </div>
+    </div>
+
+    <header class="text-center py-2 z-10">
+        <h1 class="text-4xl md:text-5xl font-title text-yellow-400 drop-shadow-[0_4px_0_rgba(0,0,0,0.5)] tracking-wider">TALKING POINTS</h1>
+        <p class="text-xs font-bold text-purple-300 tracking-widest uppercase">Family Party Game</p>
     </header>
 
-    <main class="flex-grow flex items-center justify-center my-4">
-        <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl border-4 border-purple-600 w-full max-w-xl relative">
+    <main class="flex-grow flex items-center justify-center my-4 z-10">
+        <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border-4 border-purple-600 w-full max-w-xl relative">
             
             <div id="screen-start" class="space-y-6 text-center">
-                <p class="text-lg text-gray-300">Give hilarious presentations on slides you've never seen before!</p>
+                <p class="text-lg text-gray-300 font-medium">Give hilarious impromptu presentations on slides you've never seen before!</p>
                 <div class="flex flex-col gap-4">
-                    <button onclick="initHost()" class="bg-emerald-500 hover:bg-emerald-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg">
+                    <button onclick="initHost()" class="bg-emerald-500 hover:bg-emerald-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg tracking-wide">
                         👑 HOST A GAME
                     </button>
-                    <div class="border-t border-gray-700 my-2"></div>
-                    <input type="text" id="player-name" placeholder="Your Name" class="w-full p-3 bg-gray-700 rounded-xl text-center font-bold text-white placeholder-gray-400 focus:outline-none focus:ring-2 Kakao font-xl">
-                    <input type="text" id="room-code-input" placeholder="4-Letter Room Code" class="w-full p-3 bg-gray-700 rounded-xl text-center font-title text-white uppercase placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-xl tracking-widest">
-                    <button onclick="initPlayer()" class="bg-indigo-500 hover:bg-indigo-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg">
-                        🎮 JOIN GAME
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-gray-700"></div>
+                        <span class="flex-shrink mx-4 text-gray-500 text-xs font-bold uppercase tracking-widest">OR JOIN ONE</span>
+                        <div class="flex-grow border-t border-gray-700"></div>
+                    </div>
+                    <input type="text" id="player-name" placeholder="Enter Your Name" class="w-full p-3 bg-gray-800 border-2 border-gray-700 rounded-xl text-center font-bold text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 text-lg">
+                    <input type="text" id="room-code-input" placeholder="4-Letter Room Code" class="w-full p-3 bg-gray-800 border-2 border-gray-700 rounded-xl text-center font-title text-white uppercase placeholder-gray-500 focus:outline-none focus:border-yellow-400 text-xl tracking-widest">
+                    <button onclick="initPlayer()" class="bg-indigo-500 hover:bg-indigo-600 font-title text-xl py-4 rounded-xl transition transform active:scale-95 shadow-lg tracking-wide">
+                        🎮 JOIN AS PLAYER
                     </button>
                 </div>
             </div>
 
             <div id="screen-host-lobby" class="hidden space-y-6 text-center">
                 <div>
-                    <p class="text-sm text-gray-400 uppercase tracking-widest">Room Code</p>
-                    <h2 id="display-room-code" class="text-5xl font-title text-yellow-400 tracking-wider">----</h2>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">Room Code</p>
+                    <h2 id="display-room-code" class="text-6xl font-title text-yellow-400 tracking-widest drop-shadow">----</h2>
                 </div>
-                <div class="bg-gray-900 p-4 rounded-xl min-h-[150px]">
-                    <p class="text-gray-400 border-b border-gray-700 pb-2 mb-2 font-bold">Players Connected</p>
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 min-h-[150px]">
+                    <p class="text-gray-400 border-b border-gray-800 pb-2 mb-2 font-bold uppercase tracking-wider text-xs">Players Connected</p>
                     <ul id="host-player-list" class="grid grid-cols-2 gap-2 font-bold text-lg text-emerald-400"></ul>
                 </div>
-                <button onclick="startGame()" class="w-full bg-yellow-500 text-gray-900 font-title text-xl py-3 rounded-xl hover:bg-yellow-400 transition transform active:scale-95">
-                    🚀 START GAME
+                <button onclick="startGame()" class="w-full bg-yellow-400 text-gray-950 font-title text-xl py-4 rounded-xl hover:bg-yellow-300 transition transform active:scale-95 shadow-lg tracking-wide">
+                    🚀 START THE CHAOS
                 </button>
             </div>
 
             <div id="screen-player-lobby" class="hidden text-center space-y-6 py-8">
-                <div class="animate-pulse text-2xl font-title text-indigo-400">Connected to Host!</div>
-                <p class="text-gray-300 text-lg">Waiting for the Host to kick off the family madness...</p>
-                <div id="player-lobby-status" class="text-sm text-gray-500"></div>
+                <div class="animate-bounce text-2xl font-title text-indigo-400 tracking-wide">Connected Successfully!</div>
+                <p class="text-gray-300 text-lg font-medium">Sit back! Waiting for the Host to kick off the game...</p>
+                <div id="player-lobby-status" class="text-xs bg-gray-950 p-3 rounded-lg border border-gray-800 text-gray-400 font-medium"></div>
+                <button onclick="leaveGame()" class="text-xs text-red-400 underline tracking-wider block mx-auto mt-4">Leave Room / Reset</button>
             </div>
 
             <div id="screen-prompt" class="hidden space-y-4 text-center">
-                <h3 class="text-xl font-title text-purple-400">Create a Presentation Title!</h3>
-                <p class="text-sm text-gray-300">Write something weird or funny for another family member to present.</p>
-                <input type="text" id="submitted-title" placeholder="e.g., Why Bananas Rule the World" class="w-full p-3 bg-gray-700 rounded-xl text-white font-bold placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <button onclick="submitPrompt()" id="btn-submit-prompt" class="w-full bg-purple-600 font-title py-3 rounded-xl hover:bg-purple-500 transition">
+                <h3 class="text-2xl font-title text-purple-400">Invent a Presentation Title!</h3>
+                <p class="text-sm text-gray-300 font-medium">Write something absolutely absurd for another family member to speak on.</p>
+                <input type="text" id="submitted-title" placeholder="e.g., The Secret Martial Arts of Garden Gnomes" class="w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-xl text-white font-bold text-center placeholder-gray-600 focus:outline-none focus:border-purple-500">
+                <button onclick="submitPrompt()" id="btn-submit-prompt" class="w-full bg-purple-600 font-title py-3 rounded-xl hover:bg-purple-500 active:scale-95 transition text-lg tracking-wide shadow-md">
                     Submit Title
                 </button>
             </div>
 
             <div id="screen-game" class="hidden space-y-4">
-                <div id="game-role-banner" class="text-center p-2 bg-purple-900/50 rounded-lg text-sm font-bold tracking-wide"></div>
+                <div id="game-role-banner" class="text-center p-3 bg-purple-950 border border-purple-800 rounded-xl text-sm font-bold tracking-wide"></div>
                 
-                <div id="slide-area" class="bg-white text-gray-900 p-6 rounded-xl shadow-inner min-h-[300px] flex flex-col justify-between items-center text-center space-y-4">
-                    <h2 id="slide-title" class="text-2xl font-title text-indigo-900 line-clamp-2">Loading Presentation...</h2>
-                    <img id="slide-image" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='%23eee'/></svg>" class="max-h-40 object-contain rounded-lg hidden">
-                    <p id="slide-text" class="text-xl font-bold text-gray-700 italic"></p>
+                <div id="slide-area" class="bg-gray-50 text-gray-900 p-6 rounded-xl shadow-2xl min-h-[320px] flex flex-col justify-between items-center text-center space-y-4 border-4 border-white">
+                    <h2 id="slide-title" class="text-2xl font-title text-indigo-950 line-clamp-2 leading-tight">Loading Slide...</h2>
+                    <div class="w-full flex justify-center items-center h-40 bg-gray-200 rounded-lg overflow-hidden relative">
+                        <img id="slide-image" src="" class="max-h-40 max-w-full object-contain rounded-lg hidden">
+                    </div>
+                    <p id="slide-text" class="text-lg font-bold text-gray-700 italic border-t border-gray-200 pt-2 w-full"></p>
                 </div>
 
                 <div id="controller-area" class="space-y-2 mt-4">
-                    <div id="panel-assistant" class="hidden grid grid-cols-2 gap-2">
-                        <button onclick="sendAssistantAction('image')" class="bg-blue-600 p-3 font-title rounded-xl text-sm hover:bg-blue-500">🖼️ Change Image</button>
-                        <button onclick="sendAssistantAction('text')" class="bg-amber-600 p-3 font-title rounded-xl text-sm hover:bg-amber-500">✍️ Change Bullet</button>
+                    <div id="panel-assistant" class="hidden grid grid-cols-2 gap-3">
+                        <button onclick="sendAssistantAction('image')" class="bg-blue-600 p-4 font-title rounded-xl text-sm hover:bg-blue-500 active:scale-95 transition shadow-md">🖼️ Disrupt Image</button>
+                        <button onclick="sendAssistantAction('text')" class="bg-amber-600 p-4 font-title rounded-xl text-sm hover:bg-amber-500 active:scale-95 transition shadow-md">✍️ Disrupt Bullet</button>
                     </div>
                     <div id="panel-audience" class="hidden">
-                        <p class="text-center text-xs text-gray-400 mb-2 font-bold">React to the Speaker!</p>
-                        <div class="grid grid-cols-4 gap-2 text-2xl">
-                            <button onclick="sendReaction('😂')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">😂</button>
-                            <button onclick="sendReaction('👏')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">👏</button>
-                            <button onclick="sendReaction('😮')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">😮</button>
-                            <button onclick="sendReaction('💩')" class="bg-gray-700 p-2 rounded-xl hover:bg-gray-600 active:scale-90 transition">💩</button>
+                        <p class="text-center text-xs uppercase tracking-widest text-gray-400 mb-2 font-bold">Heckle / Support the Speaker!</p>
+                        <div class="grid grid-cols-4 gap-2 text-3xl">
+                            <button onclick="sendReaction('😂')" class="bg-gray-800 p-3 rounded-xl hover:bg-gray-700 active:scale-90 border border-gray-700 transition">😂</button>
+                            <button onclick="sendReaction('👏')" class="bg-gray-800 p-3 rounded-xl hover:bg-gray-700 active:scale-90 border border-gray-700 transition">👏</button>
+                            <button onclick="sendReaction('😮')" class="bg-gray-800 p-3 rounded-xl hover:bg-gray-700 active:scale-90 border border-gray-700 transition">😮</button>
+                            <button onclick="sendReaction('💩')" class="bg-gray-800 p-3 rounded-xl hover:bg-gray-700 active:scale-90 border border-gray-700 transition">💩</button>
                         </div>
                     </div>
                 </div>
@@ -105,37 +123,53 @@
         </div>
     </main>
 
-    <footer class="text-center text-xs text-gray-500 font-mono">
-        Status: <span id="network-status" class="text-yellow-500">Idle</span>
+    <footer class="text-center text-xs text-gray-600 font-mono">
+        Status: <span id="network-status" class="text-yellow-600 font-bold">Idle</span>
     </footer>
 
     <script>
         let peer = null;
-        let connections = []; // Used by Host to store player connections
-        let myConn = null;     // Used by Player to store connection to Host
+        let connections = []; 
+        let myConn = null;     
         let isHost = false;
         let myName = "";
         let roomCode = "";
         
-        // Game State Variables
         let players = []; 
         let prompts = [];
-        let currentPresenter = "";
-        let currentAssistant = "";
+        let currentPresenter = null;
+        let currentAssistant = null;
         let currentTitle = "";
+        let currentImgPath = "";
+        let currentTextPath = "";
+        let gameStageStarted = false;
 
-        // Fun Slide Generation Content
-        const randomKeywords = ['cat', 'dog', 'alien', 'sandwich', 'explosion', 'money', 'crypto', 'grandma', 'banana', 'ghost', 'workout', 'math', 'ceo', 'toilet'];
-        const randomBulletPoints = [
-            "Data suggests this is completely unavoidable.",
-            "My grandmother told me this in a dream.",
-            "According to a questionable internet blog...",
-            "This cost me my entire life savings.",
-            "Notice how shiny it is? That's efficiency.",
-            "Phase 2 involves an alarming amount of cheese.",
-            "The government doesn't want you to know this.",
-            "We tried doing this with ferrets, it did not go well."
-        ];
+        // On Page Load: Check if we need to auto-restore a connection from an accidental refresh
+        window.addEventListener('DOMContentLoaded', () => {
+            const cachedRole = sessionStorage.getItem('tp_role');
+            const cachedCode = sessionStorage.getItem('tp_code');
+            const cachedName = sessionStorage.getItem('tp_name');
+
+            if (cachedRole === 'host' && cachedCode) {
+                // If Host refreshed, restore room tracking state
+                initHost(cachedCode);
+            } else if (cachedRole === 'player' && cachedName && cachedCode) {
+                // If Player refreshed, auto-fill inputs and reconnect them to the room
+                document.getElementById('player-name').value = cachedName;
+                document.getElementById('room-code-input').value = cachedCode;
+                initPlayer(cachedName, cachedCode);
+            }
+        });
+
+        function showModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
 
         function showScreen(id) {
             ['screen-start', 'screen-host-lobby', 'screen-player-lobby', 'screen-prompt', 'screen-game'].forEach(s => {
@@ -150,26 +184,41 @@
             statusEl.className = colorClass;
         }
 
-        // --- HOST LOGIC ---
-        function initHost() {
-            isHost = true;
-            // Generate a random clean 4-letter room code
-            roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-            document.getElementById('display-room-code').textContent = roomCode;
-            updateStatus("Starting connection server...", "text-yellow-500");
+        function leaveGame() {
+            sessionStorage.clear();
+            location.reload();
+        }
 
-            // Connect to PeerJS cloud routing server
+        // --- HOST NETWORK LOGIC ---
+        function initHost(existingCode = null) {
+            isHost = true;
+            roomCode = existingCode || Math.random().toString(36).substring(2, 6).toUpperCase();
+            
+            // Save state to survive refresh
+            sessionStorage.setItem('tp_role', 'host');
+            sessionStorage.setItem('tp_code', roomCode);
+
+            document.getElementById('display-room-code').textContent = roomCode;
+            updateStatus("Booting server network...", "text-yellow-500");
+
             peer = new Peer('TKPT-' + roomCode);
 
             peer.on('open', (id) => {
-                updateStatus("Room Open & Active", "text-emerald-400");
+                updateStatus("Room Live & Active", "text-emerald-400");
                 showScreen('screen-host-lobby');
+                updateHostLobbyUI();
             });
 
             peer.on('error', (err) => {
                 console.error(err);
-                alert("Room code setup failed. Try hosting again.");
-                updateStatus("Error standardizing room.", "text-red-500");
+                if (err.type === 'unavailable-id') {
+                    // Host refreshed and reassumed control safely
+                    updateStatus("Room Re-established", "text-emerald-400");
+                    showScreen('screen-host-lobby');
+                } else {
+                    showModal("Setup Failed", "Could not generate room. Try hosting again.");
+                    leaveGame();
+                }
             });
 
             peer.on('connection', (conn) => {
@@ -179,24 +228,52 @@
             });
         }
 
+        function updateHostLobbyUI() {
+            const list = document.getElementById('host-player-list');
+            list.innerHTML = "";
+            players.forEach(p => {
+                const li = document.createElement('li');
+                li.className = "bg-gray-950 p-2 rounded-lg border border-gray-800 text-center text-sm";
+                li.textContent = "👤 " + p.name;
+                list.appendChild(li);
+            });
+        }
+
         function handleHostIncomingData(conn, data) {
             if (data.type === 'JOIN') {
-                // Register new family player
-                const newPlayer = { id: conn.peer, name: data.name };
-                players.push(newPlayer);
-                connections.push(conn);
+                // Check if this player name is rejoining due to a page refresh
+                let existingPlayer = players.find(p => p.name === data.name);
+                if (existingPlayer) {
+                    existingPlayer.id = conn.peer;
+                    // Replace old broken connection pointer with new one
+                    connections = connections.filter(c => c.peer !== conn.peer);
+                    connections.push(conn);
+                } else {
+                    players.push({ id: conn.peer, name: data.name });
+                    connections.push(conn);
+                }
                 
-                // Update host screen lobby
-                const list = document.getElementById('host-player-list');
-                const li = document.createElement('li');
-                li.textContent = data.name;
-                list.appendChild(li);
+                updateHostLobbyUI();
 
-                // Broadcast updated list to all players
-                broadcast({ type: 'LOBBY_UPDATE', players: players });
+                // If game was already mid-round when they refreshed, catch them up instantly!
+                if (gameStageStarted) {
+                    conn.send({
+                        type: 'START_ROUND',
+                        presenter: currentPresenter,
+                        assistant: currentAssistant,
+                        title: currentTitle
+                    });
+                    conn.send({
+                        type: 'UPDATE_SLIDE_ELEMENTS',
+                        img: currentImgPath,
+                        text: currentTextPath
+                    });
+                } else {
+                    broadcast({ type: 'LOBBY_UPDATE', players: players });
+                }
             }
             if (data.type === 'SUBMIT_PROMPT') {
-                prompts.push(data.text);
+                if (!prompts.includes(data.text)) prompts.push(data.text);
                 if (prompts.length >= players.length) {
                     setupPresentationRound();
                 }
@@ -211,20 +288,20 @@
 
         function startGame() {
             if (players.length < 2) {
-                alert("You need at least 2 players to play! Call over some family members.");
+                showModal("Need More Players", "You need at least 2 players to start! Gather the family!");
                 return;
             }
+            gameStageStarted = false;
             broadcast({ type: 'START_PROMPTS' });
             showScreen('screen-prompt');
         }
 
         function setupPresentationRound() {
-            // Assign roles dynamically
+            gameStageStarted = true;
             let shuffled = [...players].sort(() => 0.5 - Math.random());
             currentPresenter = shuffled[0];
-            currentAssistant = shuffled[1] || shuffled[0]; // Backup if small group
+            currentAssistant = shuffled[1] || shuffled[0]; 
             
-            // Pick a random funny prompt title
             currentTitle = prompts[Math.floor(Math.random() * prompts.length)] || "Why We Must Ban Mondays";
 
             broadcast({
@@ -234,48 +311,62 @@
                 title: currentTitle
             });
 
-            // Put Host Screen directly into slide display mode
             showScreen('screen-game');
-            document.getElementById('game-role-banner').textContent = "👑 HOST VIEW (Main Screen)";
+            document.getElementById('game-role-banner').innerHTML = "📺 MAIN STAGE VIEW <br><span class='text-yellow-400 text-xs'>Gather around this device to watch the speaker!</span>";
             document.getElementById('slide-title').textContent = currentTitle;
             generateNewSlideElement('both');
         }
 
         function generateNewSlideElement(type) {
-            const randomKeyword = randomKeywords[Math.floor(Math.random() * randomKeywords.length)];
-            const randomText = randomBulletPoints[Math.floor(Math.random() * randomBulletPoints.length)];
-            const randomImgUrl = `https://loremflickr.com/400/300/${randomKeyword}?random=${Math.floor(Math.random()*1000)}`;
+            if (typeof customImages === 'undefined' || typeof customBulletPoints === 'undefined') {
+                showModal("File Missing", "Error: custom.js was not found or is empty.");
+                return;
+            }
 
+            const randomImgFile = customImages[Math.floor(Math.random() * customImages.length)];
+            const randomText = customBulletPoints[Math.floor(Math.random() * customBulletPoints.length)];
+            
             const payload = { type: 'UPDATE_SLIDE_ELEMENTS' };
 
-            if (type === 'image' || type === 'both') payload.img = randomImgUrl;
-            if (type === 'text' || type === 'both') payload.text = randomText;
+            if (type === 'image' || type === 'both') {
+                currentImgPath = `images/${randomImgFile}`;
+                payload.img = currentImgPath;
+            }
+            if (type === 'text' || type === 'both') {
+                currentTextPath = randomText;
+                payload.text = currentTextPath;
+            }
 
             broadcast(payload);
         }
 
         function broadcast(msg) {
-            connections.forEach(c => c.send(msg));
-            // Also invoke locally for Host device UI updates
-            handlePlayerIncomingData(msg);
+            connections.forEach(c => {
+                if (c.open) c.send(msg);
+            });
+            handlePlayerIncomingData(msg); // keep Host UI in sync
         }
 
+        // --- PLAYER NETWORK LOGIC ---
+        function initPlayer(autoName = null, autoCode = null) {
+            myName = autoName || document.getElementById('player-name').value.trim();
+            roomCode = autoCode || document.getElementById('room-code-input').value.trim().toUpperCase();
 
-        // --- PLAYER LOGIC ---
-        function initPlayer() {
-            myName = document.getElementById('player-name').value.trim();
-            let code = document.getElementById('room-code-input').value.trim().toUpperCase();
-
-            if (!myName || !code) {
-                alert("Please type both your Name and the 4-Letter Code!");
+            if (!myName || !roomCode) {
+                showModal("Missing Info", "Please make sure to fill out your Name and enter the 4-Letter Code!");
                 return;
             }
 
-            updateStatus("Connecting to host...", "text-yellow-500");
-            peer = new Peer(); // Free random client ID
+            // Cache data locally to gracefully survive user refresh
+            sessionStorage.setItem('tp_role', 'player');
+            sessionStorage.setItem('tp_name', myName);
+            sessionStorage.setItem('tp_code', roomCode);
+
+            updateStatus("Knocking on room door...", "text-yellow-500");
+            peer = new Peer(); 
 
             peer.on('open', () => {
-                myConn = peer.connect('TKPT-' + code);
+                myConn = peer.connect('TKPT-' + roomCode);
                 
                 myConn.on('open', () => {
                     updateStatus("Connected!", "text-emerald-400");
@@ -288,15 +379,16 @@
                 });
 
                 myConn.on('close', () => {
-                    alert("Disconnected from Host.");
-                    location.reload();
+                    updateStatus("Reconnecting...", "text-yellow-500");
+                    // Automatically re-fire registration loop if dropped out
+                    setTimeout(() => { initPlayer(myName, roomCode); }, 2000);
                 });
             });
         }
 
         function handlePlayerIncomingData(data) {
             if (data.type === 'LOBBY_UPDATE') {
-                document.getElementById('player-lobby-status').innerHTML = `Players in lobby: <br> ${data.players.map(p => p.name).join(', ')}`;
+                document.getElementById('player-lobby-status').innerHTML = `<p class='text-purple-400 mb-1 font-bold'>Players in Lobby:</p>${data.players.map(p => p.name).join(', ')}`;
             }
             if (data.type === 'START_PROMPTS') {
                 showScreen('screen-prompt');
@@ -325,10 +417,11 @@
             if (!txt) return;
             
             document.getElementById('btn-submit-prompt').disabled = true;
-            document.getElementById('btn-submit-prompt').textContent = "Waiting for others...";
+            document.getElementById('btn-submit-prompt').className = "w-full bg-gray-700 text-gray-400 font-title py-3 rounded-xl cursor-not-allowed";
+            document.getElementById('btn-submit-prompt').textContent = "Waiting for family...";
             
             if (isHost) {
-                prompts.push(txt);
+                if (!prompts.includes(txt)) prompts.push(txt);
                 if (prompts.length >= players.length) setupPresentationRound();
             } else {
                 myConn.send({ type: 'SUBMIT_PROMPT', text: txt });
@@ -340,29 +433,28 @@
             const panelAssistant = document.getElementById('panel-assistant');
             const panelAudience = document.getElementById('panel-audience');
             
-            // Hide all interaction panels to start
             panelAssistant.classList.add('hidden');
             panelAudience.classList.add('hidden');
 
             document.getElementById('slide-title').textContent = gameData.title;
 
             if (!isHost && peer.id === gameData.presenter.id) {
-                roleBanner.innerHTML = "🎤 YOU ARE THE SPEAKER! <br><span class='text-yellow-400 animate-pulse text-xs'>Look at the main host screen and start presenting!</span>";
+                roleBanner.innerHTML = "🎤 YOU ARE THE SPEAKER! <br><span class='text-yellow-400 animate-pulse text-xs uppercase font-bold mt-1 block'>Look at the Main Screen and start talking!</span>";
             } else if (!isHost && peer.id === gameData.assistant.id) {
-                roleBanner.innerHTML = "😈 YOU ARE THE ASSISTANT! <br><span class='text-orange-400 text-xs'>Sabotage them with the buttons below!</span>";
+                roleBanner.innerHTML = "😈 YOU ARE THE CO-PILOT ASSISTANT! <br><span class='text-orange-400 text-xs uppercase font-bold mt-1 block'>Sabotage their presentation below!</span>";
                 panelAssistant.classList.remove('hidden');
             } else if (!isHost) {
-                roleBanner.innerHTML = "🍿 YOU ARE THE AUDIENCE";
+                roleBanner.innerHTML = "🍿 YOU ARE IN THE AUDIENCE";
                 panelAudience.classList.remove('hidden');
             }
         }
 
         function sendAssistantAction(type) {
-            if (myConn) myConn.send({ type: 'ASSISTANT_ACTION', actionType: type });
+            if (myConn && myConn.open) myConn.send({ type: 'ASSISTANT_ACTION', actionType: type });
         }
 
         function sendReaction(emoji) {
-            if (myConn) myConn.send({ type: 'REACTION', emoji: emoji });
+            if (myConn && myConn.open) myConn.send({ type: 'REACTION', emoji: emoji });
         }
 
         function triggerFloatingEmoji(emoji) {
@@ -370,11 +462,8 @@
             const div = document.createElement('div');
             div.className = "floating-emoji";
             div.textContent = emoji;
-            // Random horizontal placement across screen
             div.style.left = Math.random() * 80 + 10 + "%";
             layer.appendChild(div);
-            
-            // Performance: remove elements after animation ends
             setTimeout(() => { div.remove(); }, 2000);
         }
     </script>
