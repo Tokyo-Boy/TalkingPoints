@@ -1,9 +1,9 @@
 // custom.js - Add your own inside family jokes and photos here!
 
 const customImages = [
-    "photo1.jpg", 
-    "photo2.png", 
-    "photo3.jpg"
+    "images/photo1.jpg", 
+    "images/photo2.png", 
+    "images/photo3.jpg"
 ];
 
 const customBulletPoints = [
