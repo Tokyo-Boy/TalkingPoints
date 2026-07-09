@@ -86,7 +86,7 @@
             <div id="screen-prompt" class="hidden space-y-4 text-center">
                 <h3 class="text-2xl font-title text-purple-400">Invent a Presentation Title!</h3>
                 <p class="text-sm text-gray-300 font-medium">Write something absolutely absurd for another family member to speak on.</p>
-                <input type="text" id="submitted-title" placeholder="e.g., The Secret Martial Arts of Garden Gnomes" class="w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-xl text-white font-bold text-center placeholder-gray-600 focus:outline-none focus:border-purple-500">
+                <input type="text" id="submitted-title" placeholder="e.g., Secret Martial Arts of Garden Gnomes" class="w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-xl text-white font-bold text-center placeholder-gray-600 focus:outline-none focus:border-purple-500">
                 <button onclick="submitPrompt()" id="btn-submit-prompt" class="w-full bg-purple-600 font-title py-3 rounded-xl hover:bg-purple-500 active:scale-95 transition text-lg tracking-wide shadow-md">
                     Submit Title
                 </button>
@@ -95,7 +95,11 @@
             <div id="screen-game" class="hidden space-y-4">
                 <div id="game-role-banner" class="text-center p-3 bg-purple-950 border border-purple-800 rounded-xl text-sm font-bold tracking-wide"></div>
                 
-                <div id="slide-area" class="bg-gray-50 text-gray-900 p-6 rounded-xl shadow-2xl min-h-[320px] flex flex-col justify-between items-center text-center space-y-4 border-4 border-white">
+                <div class="text-right text-xs font-mono font-bold text-purple-400 uppercase tracking-widest">
+                    Slide Tracker: <span id="slide-counter" class="text-yellow-400">Waiting...</span>
+                </div>
+
+                <div id="slide-area" class="bg-gray-50 text-gray-900 p-6 rounded-xl shadow-2xl min-h-[320px] flex flex-col justify-between items-center text-center space-y-4 border-4 border-white relative">
                     <h2 id="slide-title" class="text-2xl font-title text-indigo-950 line-clamp-2 leading-tight">Loading Slide...</h2>
                     <div class="w-full flex justify-center items-center h-40 bg-gray-200 rounded-lg overflow-hidden relative">
                         <img id="slide-image" src="" class="max-h-40 max-w-full object-contain rounded-lg hidden">
@@ -103,11 +107,25 @@
                     <p id="slide-text" class="text-lg font-bold text-gray-700 italic border-t border-gray-200 pt-2 w-full"></p>
                 </div>
 
-                <div id="controller-area" class="space-y-2 mt-4">
-                    <div id="panel-assistant" class="hidden grid grid-cols-2 gap-3">
+                <div id="controller-area" class="space-y-4 mt-4">
+                    <div id="panel-assistant-setup" class="hidden bg-gray-950 p-4 rounded-xl border border-gray-800 text-center space-y-3">
+                        <p class="font-title text-orange-400 text-sm uppercase tracking-wide">Set the length of this Presentation!</p>
+                        <p class="text-xs text-gray-400">Choose how many slides the speaker must survive:</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setRoundBudget(5)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">5</button>
+                            <button onclick="setRoundBudget(6)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">6</button>
+                            <button onclick="setRoundBudget(7)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">7</button>
+                            <button onclick="setRoundBudget(8)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">8</button>
+                            <button onclick="setRoundBudget(9)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">9</button>
+                            <button onclick="setRoundBudget(10)" class="bg-orange-600 font-title p-3 rounded-lg hover:bg-orange-500 active:scale-90 transition">10</button>
+                        </div>
+                    </div>
+
+                    <div id="panel-assistant-active" class="hidden grid grid-cols-2 gap-3">
                         <button onclick="sendAssistantAction('image')" class="bg-blue-600 p-4 font-title rounded-xl text-sm hover:bg-blue-500 active:scale-95 transition shadow-md">🖼️ Disrupt Image</button>
                         <button onclick="sendAssistantAction('text')" class="bg-amber-600 p-4 font-title rounded-xl text-sm hover:bg-amber-500 active:scale-95 transition shadow-md">✍️ Disrupt Bullet</button>
                     </div>
+
                     <div id="panel-audience" class="hidden">
                         <p class="text-center text-xs uppercase tracking-widest text-gray-400 mb-2 font-bold">Heckle / Support the Speaker!</p>
                         <div class="grid grid-cols-4 gap-2 text-3xl">
@@ -117,7 +135,31 @@
                             <button onclick="sendReaction('💩')" class="bg-gray-800 p-3 rounded-xl hover:bg-gray-700 active:scale-90 border border-gray-700 transition">💩</button>
                         </div>
                     </div>
+
+                    <div id="panel-voting" class="hidden bg-gray-950 p-4 rounded-xl border border-purple-800 text-center space-y-3 animate-fade-in">
+                        <p class="font-title text-yellow-400 text-sm uppercase tracking-wide">Rate the Presentation!</p>
+                        <div class="flex flex-col gap-2" id="voting-buttons">
+                            <button onclick="submitVote(10)" class="bg-gray-800 border border-gray-700 p-3 rounded-xl font-bold hover:bg-purple-900 transition">👍 Good (+10 Pts)</button>
+                            <button onclick="submitVote(25)" class="bg-gray-800 border border-gray-700 p-3 rounded-xl font-bold hover:bg-purple-900 transition">😂 Hilarious (+25 Pts)</button>
+                            <button onclick="submitVote(50)" class="bg-gray-800 border border-gray-700 p-3 rounded-xl font-bold hover:bg-purple-900 transition">🏆 Legendary (+50 Pts)</button>
+                        </div>
+                    </div>
+                    
+                    <div id="panel-host-controls" class="hidden space-y-2">
+                        <button id="btn-next-action" onclick="hostProgressGameLoop()" class="w-full bg-emerald-500 font-title py-3 rounded-xl text-gray-950 text-lg shadow-lg hover:bg-emerald-400 transition hidden">
+                            Next Presenter ➡️
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            <div id="screen-leaderboard" class="hidden text-center space-y-6 py-4">
+                <h2 class="text-3xl font-title text-yellow-400 uppercase tracking-widest drop-shadow">🏆 FINAL STANDINGS 🏆</h2>
+                <div class="flex flex-col gap-3 max-w-sm mx-auto" id="podium-container">
+                    </div>
+                <button onclick="leaveGame()" class="w-full bg-indigo-600 font-title py-3 rounded-xl text-white shadow-md hover:bg-indigo-500 transition">
+                    PLAY AGAIN 🔄
+                </button>
             </div>
 
         </div>
@@ -135,26 +177,26 @@
         let myName = "";
         let roomCode = "";
         
-        let players = []; 
+        let players = []; // Array of { id, name, score, hasSpoken }
         let prompts = [];
         let currentPresenter = null;
         let currentAssistant = null;
         let currentTitle = "";
-        let currentImgPath = "";
-        let currentTextPath = "";
+        
+        // Custom counting tracking mechanics
+        let maxSlidesBudget = 0;
+        let currentSlideCount = 0;
+        let votesReceivedCount = 0;
         let gameStageStarted = false;
 
-        // On Page Load: Check if we need to auto-restore a connection from an accidental refresh
         window.addEventListener('DOMContentLoaded', () => {
             const cachedRole = sessionStorage.getItem('tp_role');
             const cachedCode = sessionStorage.getItem('tp_code');
             const cachedName = sessionStorage.getItem('tp_name');
 
             if (cachedRole === 'host' && cachedCode) {
-                // If Host refreshed, restore room tracking state
                 initHost(cachedCode);
             } else if (cachedRole === 'player' && cachedName && cachedCode) {
-                // If Player refreshed, auto-fill inputs and reconnect them to the room
                 document.getElementById('player-name').value = cachedName;
                 document.getElementById('room-code-input').value = cachedCode;
                 initPlayer(cachedName, cachedCode);
@@ -172,7 +214,7 @@
         }
 
         function showScreen(id) {
-            ['screen-start', 'screen-host-lobby', 'screen-player-lobby', 'screen-prompt', 'screen-game'].forEach(s => {
+            ['screen-start', 'screen-host-lobby', 'screen-player-lobby', 'screen-prompt', 'screen-game', 'screen-leaderboard'].forEach(s => {
                 document.getElementById(s).classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
@@ -189,12 +231,11 @@
             location.reload();
         }
 
-        // --- HOST NETWORK LOGIC ---
+        // --- HOST LOGIC ---
         function initHost(existingCode = null) {
             isHost = true;
             roomCode = existingCode || Math.random().toString(36).substring(2, 6).toUpperCase();
             
-            // Save state to survive refresh
             sessionStorage.setItem('tp_role', 'host');
             sessionStorage.setItem('tp_code', roomCode);
 
@@ -203,28 +244,23 @@
 
             peer = new Peer('TKPT-' + roomCode);
 
-            peer.on('open', (id) => {
+            peer.on('open', () => {
                 updateStatus("Room Live & Active", "text-emerald-400");
                 showScreen('screen-host-lobby');
-                updateHostLobbyUI();
             });
 
             peer.on('error', (err) => {
-                console.error(err);
                 if (err.type === 'unavailable-id') {
-                    // Host refreshed and reassumed control safely
                     updateStatus("Room Re-established", "text-emerald-400");
                     showScreen('screen-host-lobby');
                 } else {
-                    showModal("Setup Failed", "Could not generate room. Try hosting again.");
+                    showModal("Setup Failed", "Could not generate room.");
                     leaveGame();
                 }
             });
 
             peer.on('connection', (conn) => {
-                conn.on('data', (data) => {
-                    handleHostIncomingData(conn, data);
-                });
+                conn.on('data', (data) => { handleHostIncomingData(conn, data); });
             });
         }
 
@@ -241,36 +277,17 @@
 
         function handleHostIncomingData(conn, data) {
             if (data.type === 'JOIN') {
-                // Check if this player name is rejoining due to a page refresh
                 let existingPlayer = players.find(p => p.name === data.name);
-                if (existingPlayer) {
+                if (!existingPlayer) {
+                    players.push({ id: conn.peer, name: data.name, score: 0, hasSpoken: false });
+                    connections.push(conn);
+                } else {
                     existingPlayer.id = conn.peer;
-                    // Replace old broken connection pointer with new one
                     connections = connections.filter(c => c.peer !== conn.peer);
                     connections.push(conn);
-                } else {
-                    players.push({ id: conn.peer, name: data.name });
-                    connections.push(conn);
                 }
-                
                 updateHostLobbyUI();
-
-                // If game was already mid-round when they refreshed, catch them up instantly!
-                if (gameStageStarted) {
-                    conn.send({
-                        type: 'START_ROUND',
-                        presenter: currentPresenter,
-                        assistant: currentAssistant,
-                        title: currentTitle
-                    });
-                    conn.send({
-                        type: 'UPDATE_SLIDE_ELEMENTS',
-                        img: currentImgPath,
-                        text: currentTextPath
-                    });
-                } else {
-                    broadcast({ type: 'LOBBY_UPDATE', players: players });
-                }
+                broadcast({ type: 'LOBBY_UPDATE', players: players });
             }
             if (data.type === 'SUBMIT_PROMPT') {
                 if (!prompts.includes(data.text)) prompts.push(data.text);
@@ -278,31 +295,66 @@
                     setupPresentationRound();
                 }
             }
+            if (data.type === 'SET_ROUND_BUDGET') {
+                maxSlidesBudget = data.budget;
+                currentSlideCount = 1;
+                broadcast({ type: 'BUDGET_CONFIRMED', budget: maxSlidesBudget });
+                generateNewSlideElement('both');
+            }
             if (data.type === 'ASSISTANT_ACTION') {
-                generateNewSlideElement(data.actionType);
+                currentSlideCount++;
+                if (currentSlideCount > maxSlidesBudget) {
+                    // Slide limit hit! Kick over to voting screen
+                    votesReceivedCount = 0;
+                    broadcast({ type: 'TRIGGER_VOTING_PHASE', presenterName: currentPresenter.name });
+                } else {
+                    generateNewSlideElement(data.actionType);
+                }
             }
             if (data.type === 'REACTION') {
                 broadcast({ type: 'SHOW_REACTION', emoji: data.emoji });
+            }
+            if (data.type === 'CAST_VOTE') {
+                votesReceivedCount++;
+                // Add points to active speaker directly on host ledger
+                let speaker = players.find(p => p.id === currentPresenter.id);
+                if (speaker) speaker.score += data.points;
+
+                // Check if everyone (except the speaker) has completed voting
+                if (votesReceivedCount >= (players.length - 1)) {
+                    document.getElementById('btn-next-action').classList.remove('hidden');
+                }
             }
         }
 
         function startGame() {
             if (players.length < 2) {
-                showModal("Need More Players", "You need at least 2 players to start! Gather the family!");
+                showModal("Need More Players", "You need at least 2 players!");
                 return;
             }
-            gameStageStarted = false;
             broadcast({ type: 'START_PROMPTS' });
             showScreen('screen-prompt');
         }
 
         function setupPresentationRound() {
-            gameStageStarted = true;
-            let shuffled = [...players].sort(() => 0.5 - Math.random());
-            currentPresenter = shuffled[0];
-            currentAssistant = shuffled[1] || shuffled[0]; 
-            
+            // Pick eligible player who hasn't spoken yet
+            let eligibleSpeakers = players.filter(p => !p.hasSpoken);
+            if (eligibleSpeakers.length === 0) {
+                // Everyone has gone! Trigger endgame leaderboard reveal
+                revealFinalLeaderboard();
+                return;
+            }
+
+            currentPresenter = eligibleSpeakers[0];
+            currentPresenter.hasSpoken = true;
+
+            // Assistant is anyone else in room
+            let remaining = players.filter(p => p.id !== currentPresenter.id);
+            currentAssistant = remaining[Math.floor(Math.random() * remaining.length)] || currentPresenter;
+
             currentTitle = prompts[Math.floor(Math.random() * prompts.length)] || "Why We Must Ban Mondays";
+            // Clean dynamic prompt removal to optimize cycle variety
+            prompts = prompts.filter(p => p !== currentTitle);
 
             broadcast({
                 type: 'START_ROUND',
@@ -312,57 +364,69 @@
             });
 
             showScreen('screen-game');
-            document.getElementById('game-role-banner').innerHTML = "📺 MAIN STAGE VIEW <br><span class='text-yellow-400 text-xs'>Gather around this device to watch the speaker!</span>";
+            document.getElementById('game-role-banner').innerHTML = "📺 MAIN STAGE VIEW <br><span class='text-yellow-400 text-xs font-bold'>Watch the speaker perform!</span>";
             document.getElementById('slide-title').textContent = currentTitle;
-            generateNewSlideElement('both');
+            document.getElementById('slide-counter').textContent = "Awaiting Assistant Setup...";
+            
+            if (isHost) {
+                document.getElementById('panel-host-controls').classList.remove('hidden');
+                document.getElementById('btn-next-action').classList.add('hidden');
+            }
         }
 
         function generateNewSlideElement(type) {
-            if (typeof customImages === 'undefined' || typeof customBulletPoints === 'undefined') {
-                showModal("File Missing", "Error: custom.js was not found or is empty.");
-                return;
-            }
-
             const randomImgFile = customImages[Math.floor(Math.random() * customImages.length)];
             const randomText = customBulletPoints[Math.floor(Math.random() * customBulletPoints.length)];
             
-            const payload = { type: 'UPDATE_SLIDE_ELEMENTS' };
+            const payload = { 
+                type: 'UPDATE_SLIDE_ELEMENTS', 
+                currentCount: currentSlideCount, 
+                totalBudget: maxSlidesBudget 
+            };
 
-            if (type === 'image' || type === 'both') {
-                currentImgPath = `images/${randomImgFile}`;
-                payload.img = currentImgPath;
-            }
-            if (type === 'text' || type === 'both') {
-                currentTextPath = randomText;
-                payload.text = currentTextPath;
-            }
+            if (type === 'image' || type === 'both') payload.img = `images/${randomImgFile}`;
+            if (type === 'text' || type === 'both') payload.text = randomText;
 
             broadcast(payload);
         }
 
-        function broadcast(msg) {
-            connections.forEach(c => {
-                if (c.open) c.send(msg);
-            });
-            handlePlayerIncomingData(msg); // keep Host UI in sync
+        function hostProgressGameLoop() {
+            // Evaluate if anyone remains to speak
+            let remaining = players.filter(p => !p.hasSpoken);
+            if (remaining.length > 0) {
+                setupPresentationRound();
+            } else {
+                revealFinalLeaderboard();
+            }
         }
 
-        // --- PLAYER NETWORK LOGIC ---
+        function revealFinalLeaderboard() {
+            // Sort lowest points to highest points to build podium order cleanly
+            let sorted = [...players].sort((a, b) => b.score - a.score);
+            
+            broadcast({ type: 'SHOW_FINAL_LEADERBOARD', sortedList: sorted });
+        }
+
+        function broadcast(msg) {
+            connections.forEach(c => { if (c.open) c.send(msg); });
+            handlePlayerIncomingData(msg);
+        }
+
+        // --- PLAYER LOGIC ---
         function initPlayer(autoName = null, autoCode = null) {
             myName = autoName || document.getElementById('player-name').value.trim();
             roomCode = autoCode || document.getElementById('room-code-input').value.trim().toUpperCase();
 
             if (!myName || !roomCode) {
-                showModal("Missing Info", "Please make sure to fill out your Name and enter the 4-Letter Code!");
+                showModal("Missing Info", "Please provide a Name and Room Code!");
                 return;
             }
 
-            // Cache data locally to gracefully survive user refresh
             sessionStorage.setItem('tp_role', 'player');
             sessionStorage.setItem('tp_name', myName);
             sessionStorage.setItem('tp_code', roomCode);
 
-            updateStatus("Knocking on room door...", "text-yellow-500");
+            updateStatus("Connecting...", "text-yellow-500");
             peer = new Peer(); 
 
             peer.on('open', () => {
@@ -374,15 +438,8 @@
                     showScreen('screen-player-lobby');
                 });
 
-                myConn.on('data', (data) => {
-                    handlePlayerIncomingData(data);
-                });
-
-                myConn.on('close', () => {
-                    updateStatus("Reconnecting...", "text-yellow-500");
-                    // Automatically re-fire registration loop if dropped out
-                    setTimeout(() => { initPlayer(myName, roomCode); }, 2000);
-                });
+                myConn.on('data', (data) => { handlePlayerIncomingData(data); });
+                myConn.on('close', () => { setTimeout(() => { initPlayer(myName, roomCode); }, 2000); });
             });
         }
 
@@ -397,7 +454,15 @@
                 showScreen('screen-game');
                 setupPlayerUIForRole(data);
             }
+            if (data.type === 'BUDGET_CONFIRMED') {
+                document.getElementById('panel-assistant-setup').classList.add('hidden');
+                // Reveal active controller buttons for the assistant now that setup is complete
+                if (!isHost && peer.id === currentAssistant.id) {
+                    document.getElementById('panel-assistant-active').classList.remove('hidden');
+                }
+            }
             if (data.type === 'UPDATE_SLIDE_ELEMENTS') {
+                document.getElementById('slide-counter').textContent = `${data.currentCount} / ${data.totalBudget}`;
                 if (data.img) {
                     const imgEl = document.getElementById('slide-image');
                     imgEl.src = data.img;
@@ -410,15 +475,56 @@
             if (data.type === 'SHOW_REACTION') {
                 triggerFloatingEmoji(data.emoji);
             }
+            if (data.type === 'TRIGGER_VOTING_PHASE') {
+                document.getElementById('panel-assistant-active').classList.add('hidden');
+                document.getElementById('panel-audience').classList.add('hidden');
+                
+                document.getElementById('slide-counter').textContent = "FINISHED";
+                document.getElementById('slide-title').textContent = "Presentation Complete!";
+                document.getElementById('slide-text').textContent = `Time to vote for ${data.presenterName}!`;
+                document.getElementById('slide-image').classList.add('hidden');
+
+                if (!isHost && peer.id !== currentPresenter.id) {
+                    document.getElementById('panel-voting').classList.remove('hidden');
+                    document.getElementById('voting-buttons').classList.remove('hidden');
+                } else if (!isHost && peer.id === currentPresenter.id) {
+                    document.getElementById('game-role-banner').innerHTML = "🎤 ROUND OVER <br><span class='text-yellow-400 text-xs font-bold'>Enjoy your applause while the family votes!</span>";
+                }
+            }
+            if (data.type === 'SHOW_FINAL_LEADERBOARD') {
+                showScreen('screen-leaderboard');
+                const container = document.getElementById('podium-container');
+                container.innerHTML = "";
+
+                // Reverse to display from 3rd down to 1st place visually
+                let reversedPodium = [...data.sortedList].slice(0, 3).reverse();
+                
+                reversedPodium.forEach((player, index) => {
+                    let rankText = "3rd Place";
+                    let color = "bg-gray-800 border-orange-700";
+                    if (index === 1) { rankText = "2nd Place"; color = "bg-gray-700 border-slate-400"; }
+                    if (index === 2) { rankText = "🏆 1st Place 🏆"; color = "bg-purple-900 border-yellow-400 animate-pulse"; }
+
+                    const item = document.createElement('div');
+                    item.className = `${color} border-2 p-4 rounded-xl flex justify-between items-center font-bold shadow-md`;
+                    item.innerHTML = `
+                        <div class="text-left">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">${rankText}</p>
+                            <p class="text-xl text-white font-title">${player.name}</p>
+                        </div>
+                        <div class="text-right text-xl font-title text-yellow-400">${player.score} pts</div>
+                    `;
+                    container.prepend(item); // Prepend so 1st place rendering orders safely on top stack
+                });
+            }
         }
 
         function submitPrompt() {
             const txt = document.getElementById('submitted-title').value.trim();
             if (!txt) return;
-            
             document.getElementById('btn-submit-prompt').disabled = true;
             document.getElementById('btn-submit-prompt').className = "w-full bg-gray-700 text-gray-400 font-title py-3 rounded-xl cursor-not-allowed";
-            document.getElementById('btn-submit-prompt').textContent = "Waiting for family...";
+            document.getElementById('btn-submit-prompt').textContent = "Locked In...";
             
             if (isHost) {
                 if (!prompts.includes(txt)) prompts.push(txt);
@@ -429,24 +535,29 @@
         }
 
         function setupPlayerUIForRole(gameData) {
-            const roleBanner = document.getElementById('game-role-banner');
-            const panelAssistant = document.getElementById('panel-assistant');
-            const panelAudience = document.getElementById('panel-audience');
+            currentPresenter = gameData.presenter;
+            currentAssistant = gameData.assistant;
             
-            panelAssistant.classList.add('hidden');
-            panelAudience.classList.add('hidden');
+            document.getElementById('panel-assistant-setup').classList.add('hidden');
+            document.getElementById('panel-assistant-active').classList.add('hidden');
+            document.getElementById('panel-audience').classList.add('hidden');
+            document.getElementById('panel-voting').classList.add('hidden');
 
             document.getElementById('slide-title').textContent = gameData.title;
 
-            if (!isHost && peer.id === gameData.presenter.id) {
-                roleBanner.innerHTML = "🎤 YOU ARE THE SPEAKER! <br><span class='text-yellow-400 animate-pulse text-xs uppercase font-bold mt-1 block'>Look at the Main Screen and start talking!</span>";
-            } else if (!isHost && peer.id === gameData.assistant.id) {
-                roleBanner.innerHTML = "😈 YOU ARE THE CO-PILOT ASSISTANT! <br><span class='text-orange-400 text-xs uppercase font-bold mt-1 block'>Sabotage their presentation below!</span>";
-                panelAssistant.classList.remove('hidden');
+            if (!isHost && peer.id === currentPresenter.id) {
+                document.getElementById('game-role-banner').innerHTML = "🎤 YOU ARE THE SPEAKER! <br><span class='text-yellow-400 animate-pulse text-xs uppercase font-bold mt-1 block'>Look at the Main Screen and start talking!</span>";
+            } else if (!isHost && peer.id === currentAssistant.id) {
+                document.getElementById('game-role-banner').innerHTML = "😈 YOU ARE THE ASSISTANT! <br><span class='text-orange-400 text-xs uppercase font-bold mt-1 block'>Select slide length first, then sabotage!</span>";
+                document.getElementById('panel-assistant-setup').classList.remove('hidden');
             } else if (!isHost) {
-                roleBanner.innerHTML = "🍿 YOU ARE IN THE AUDIENCE";
-                panelAudience.classList.remove('hidden');
+                document.getElementById('game-role-banner').innerHTML = "🍿 YOU ARE IN THE AUDIENCE";
+                document.getElementById('panel-audience').classList.remove('hidden');
             }
+        }
+
+        function setRoundBudget(num) {
+            if (myConn) myConn.send({ type: 'SET_ROUND_BUDGET', budget: num });
         }
 
         function sendAssistantAction(type) {
@@ -455,6 +566,11 @@
 
         function sendReaction(emoji) {
             if (myConn && myConn.open) myConn.send({ type: 'REACTION', emoji: emoji });
+        }
+
+        function submitVote(pts) {
+            document.getElementById('voting-buttons').classList.add('hidden');
+            if (myConn && myConn.open) myConn.send({ type: 'CAST_VOTE', points: pts });
         }
 
         function triggerFloatingEmoji(emoji) {
